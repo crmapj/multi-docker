@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t crmapj/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true crmapj/react-test npm test
+
+after_success:
+  - docker build -t crmapj/multi-client ./client
+  - docker build -t crmapj/multi-nginx ./nginx
+  - docker build -t crmapj/multi-server ./server
+  - docker build -t crmapj/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD | docker login -u "$DOCKER_ID" --password-stdin"
+
+  - docker push crmapj/multi-client
+  - docker push crmapj/multi-nginx
+  - docker push crmapj/multi-server
+  - docker push crmapj/multi-worker
